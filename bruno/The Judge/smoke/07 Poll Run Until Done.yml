@@ -1,0 +1,41 @@
+info:
+  name: 07 Poll Run Until Done
+  type: http
+  seq: 7
+  tags:
+    - smoke
+
+http:
+  method: GET
+  url: "{{baseUrl}}/v1/runs/{{runId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const terminal = ["completed", "failed", "cancelled"];
+        const status = res.body && res.body.status;
+        console.log("run status =", status, "succeeded=", res.body && res.body.succeeded);
+
+        // Re-run this request in Bruno until terminal, or use Collection Runner with delay.
+        if (status && !terminal.includes(status)) {
+          console.log("still running — send 07 Poll Run Until Done again");
+        }
+    - type: tests
+      code: |-
+        test("run exists", function () {
+          expect(res.status).to.equal(200);
+          expect(res.body.id).to.be.a("string");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Poll until status is completed | failed | cancelled.
+  Bruno has no built-in wait loop in a single request — click Send again
+  (or run this request repeatedly) until terminal, then run 08.

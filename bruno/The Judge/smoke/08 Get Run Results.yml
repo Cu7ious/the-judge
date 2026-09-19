@@ -1,0 +1,30 @@
+info:
+  name: 08 Get Run Results
+  type: http
+  seq: 8
+  tags:
+    - smoke
+
+http:
+  method: GET
+  url: "{{baseUrl}}/v1/runs/{{runId}}/results"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("returns results", function () {
+          expect(res.status).to.equal(200);
+          expect(res.body.results).to.be.an("array");
+          expect(res.body.results.length).to.equal(3);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Side-by-side case results + validators. Run after the poll shows a terminal status.

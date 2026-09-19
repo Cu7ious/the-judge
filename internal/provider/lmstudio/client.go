@@ -16,13 +16,15 @@ import (
 // Client talks to LM Studio's OpenAI-compatible API.
 type Client struct {
 	baseURL    string
+	apiKey     string
 	httpClient *http.Client
 }
 
-func New(baseURL string) *Client {
+func New(baseURL, apiKey string) *Client {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &Client{
 		baseURL: baseURL,
+		apiKey:  apiKey,
 		httpClient: &http.Client{
 			Timeout: 0, // rely on request context
 		},
@@ -72,6 +74,9 @@ func (c *Client) Complete(ctx context.Context, req provider.CompletionRequest) (
 		return nil, fmt.Errorf("%w: build request: %v", provider.ErrPermanent, err)
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
+	if c.apiKey != "" {
+		httpReq.Header.Set("Authorization", "Bearer "+c.apiKey)
+	}
 
 	resp, err := c.httpClient.Do(httpReq)
 	if err != nil {

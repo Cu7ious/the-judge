@@ -47,6 +47,7 @@ func (s *Server) Router() http.Handler {
 		r.Post("/suites/{id}/cases", s.handleCreateCase)
 
 		r.Post("/runs", s.handleCreateRun)
+		r.Get("/runs", s.handleListRuns)
 		r.Get("/runs/{id}", s.handleGetRun)
 		r.Get("/runs/{id}/results", s.handleGetRunResults)
 		r.Post("/runs/{id}/cancel", s.handleCancelRun)
@@ -276,6 +277,19 @@ func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusCreated, summary)
+}
+
+func (s *Server) handleListRuns(w http.ResponseWriter, r *http.Request) {
+	runs, err := s.Store.ListRuns(r.Context(), 50)
+	if err != nil {
+		s.Log.Error("list runs", "err", err)
+		writeErr(w, http.StatusInternalServerError, "failed to list runs")
+		return
+	}
+	if runs == nil {
+		runs = []domain.RunSummary{}
+	}
+	writeJSON(w, http.StatusOK, runs)
 }
 
 func (s *Server) handleGetRun(w http.ResponseWriter, r *http.Request) {

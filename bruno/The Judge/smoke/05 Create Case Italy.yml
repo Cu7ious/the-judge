@@ -1,0 +1,38 @@
+info:
+  name: 05 Create Case Italy
+  type: http
+  seq: 5
+  tags:
+    - smoke
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/suites/{{suiteId}}/cases"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "name": "italy",
+        "prompt": "What is the capital of Italy? Reply with one word only.",
+        "validators": [{"type": "contains", "value": "Rome"}],
+        "timeout_ms": 60000,
+        "position": 2
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("creates italy case", function () {
+          expect(res.status).to.equal(201);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,38 @@
+info:
+  name: 03 Create Case France
+  type: http
+  seq: 3
+  tags:
+    - smoke
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/suites/{{suiteId}}/cases"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "name": "france",
+        "prompt": "What is the capital of France? Reply with one word only.",
+        "validators": [{"type": "contains", "value": "Paris"}],
+        "timeout_ms": 60000,
+        "position": 0
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("creates france case", function () {
+          expect(res.status).to.equal(201);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

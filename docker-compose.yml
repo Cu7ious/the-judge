@@ -37,7 +37,8 @@ services:
       REDIS_ADDR: redis:6379
       MIGRATIONS_DIR: /app/migrations
       LOG_LEVEL: info
-      LMSTUDIO_BASE_URL: http://host.docker.internal:1234/v1
+      LMSTUDIO_BASE_URL: ${LMSTUDIO_BASE_URL:-http://host.docker.internal:1234/v1}
+      LMSTUDIO_API_KEY: ${LMSTUDIO_API_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       MAX_RETRIES: "3"
     depends_on:
@@ -58,7 +59,8 @@ services:
       LOG_LEVEL: info
       WORKER_CONCURRENCY: "4"
       MAX_RETRIES: "3"
-      LMSTUDIO_BASE_URL: http://host.docker.internal:1234/v1
+      LMSTUDIO_BASE_URL: ${LMSTUDIO_BASE_URL:-http://host.docker.internal:1234/v1}
+      LMSTUDIO_API_KEY: ${LMSTUDIO_API_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
     depends_on:
       postgres:

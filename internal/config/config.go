@@ -17,6 +17,7 @@ type Config struct {
 	WorkerConcurrency   int
 	MaxRetries          int
 	LMStudioBaseURL     string
+	LMStudioAPIKey      string
 	GeminiAPIKey        string
 	GeminiBaseURL       string
 	ShutdownTimeout     time.Duration
@@ -34,6 +35,7 @@ func Load() (Config, error) {
 		WorkerConcurrency:  getenvInt("WORKER_CONCURRENCY", 4),
 		MaxRetries:         getenvInt("MAX_RETRIES", 3),
 		LMStudioBaseURL:    getenv("LMSTUDIO_BASE_URL", "http://localhost:1234/v1"),
+		LMStudioAPIKey:     os.Getenv("LMSTUDIO_API_KEY"),
 		GeminiAPIKey:       os.Getenv("GEMINI_API_KEY"),
 		GeminiBaseURL:      getenv("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta"),
 		ShutdownTimeout:    getenvDuration("SHUTDOWN_TIMEOUT", 15*time.Second),

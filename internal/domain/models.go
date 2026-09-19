@@ -78,13 +78,14 @@ type ValidationResult struct {
 // RunSummary is a lightweight view of run progress.
 type RunSummary struct {
 	EvaluationRun
-	Total     int `json:"total"`
-	Pending   int `json:"pending"`
-	Running   int `json:"running"`
-	Succeeded int `json:"succeeded"`
-	Failed    int `json:"failed"`
-	Error     int `json:"error_count"`
-	Cancelled int `json:"cancelled"`
+	Total        int  `json:"total"`
+	Pending      int  `json:"pending"`
+	Running      int  `json:"running"`
+	Succeeded    int  `json:"succeeded"`
+	Failed       int  `json:"failed"`
+	Error        int  `json:"error_count"`
+	Cancelled    int  `json:"cancelled"`
+	MaxLatencyMs *int `json:"max_latency_ms,omitempty"`
 }
 
 // CaseRunWithValidations is used by the compare/results API.

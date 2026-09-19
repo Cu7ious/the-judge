@@ -10,22 +10,51 @@ Small production-minded Go service that runs evaluation suites against multiple 
 - Providers: LM Studio (OpenAI-compatible), Google Gemini
 - Deterministic validators only (exact, contains, regex, JSON, JSON schema, no_error, no_timeout)
 
-## Quick start
+## How to run (pick one mode)
+
+### Mode A — Local-friendly (recommended while coding)
+
+Postgres + Redis in Docker; **API and worker as normal Go processes** on your Mac.
 
 ```bash
-cp .env.example .env
+cp .env.example .env          # once; edit LM Studio URL/key
+make infra                    # docker: postgres + redis only
+make local-api                # terminal 1 — loads .env, go run ./cmd/api
+make local-worker             # terminal 2 — loads .env, go run ./cmd/worker
+```
+
+| You change… | What to do |
+|-------------|------------|
+| **Go code** | Stop the `go run` process (Ctrl+C), run `make local-api` / `make local-worker` again. New code is compiled on start. |
+| **`.env`** | Same: restart that `go run` process. Env is read at process start only. |
+| **Migrations** | Applied automatically when the API starts. |
+
+Use `LMSTUDIO_BASE_URL=http://127.0.0.1:PORT/v1` (host loopback). Bruno stays at `http://localhost:8080`.
+
+### Mode B — Everything in Docker
+
+```bash
 docker compose up -d --build
-# API: http://localhost:8080
+# or: make docker
 ```
 
-Or run infra only and binaries locally:
+| You change… | What to do |
+|-------------|------------|
+| **Go code** | `docker compose up -d --build api worker` (rebuild images). |
+| **`.env`** | `make restart-apps` (recreate containers so they get new env). Compose reads `.env` only when creating containers. |
+| **LM Studio from Docker** | Use `LMSTUDIO_BASE_URL=http://host.docker.internal:PORT/v1` — inside a container, `localhost` is the container, not your Mac. |
 
-```bash
-docker compose up -d postgres redis
-export $(grep -v '^#' .env.example | xargs)
-go run ./cmd/api
-go run ./cmd/worker
+`the-judge-api-1` never hot-reloads `.env` or Go source. Recreate/rebuild is required.
+
+### Mental model
+
+```text
+Bruno / curl  →  API (:8080)  →  Postgres + Redis
+                      ↓ enqueue
+                   Worker  →  LM Studio (your Mac)
 ```
+
+The **worker** calls LM Studio. The API only accepts HTTP and enqueues jobs.
 
 ## API
 
@@ -36,6 +65,7 @@ go run ./cmd/worker
 | `GET` | `/v1/suites/{id}` | Get suite + cases |
 | `POST` | `/v1/suites/{id}/cases` | Add test case |
 | `POST` | `/v1/runs` | Submit run (`suite_id` + `models[]`) |
+| `GET` | `/v1/runs` | List recent runs (summaries) |
 | `GET` | `/v1/runs/{id}` | Run status + counts |
 | `GET` | `/v1/runs/{id}/results` | Compare results |
 | `POST` | `/v1/runs/{id}/cancel` | Cancel run |
@@ -81,9 +111,12 @@ Each `(test_case × model)` becomes a `case_run` job. Transient provider errors 
 
 Open [`bruno/The Judge`](bruno/The%20Judge) in Bruno v3+/v4 (OpenCollection YAML).
 
-1. Select the **Local** environment (`baseUrl` defaults to `http://localhost:8080`)
-2. Run **Health → Readyz**, then **Suites → Create Suite → Create Case → Runs → Create Run**
-3. `suiteId` / `runId` are saved into the environment by post-response scripts
+1. Select the **Local** environment (`baseUrl` → `http://localhost:8080`, `lmstudioModel` → your LM Studio model id)
+2. Prefer the **Smoke Parallel LM Studio** folder: run requests **01 → 08** in order
+3. After **06 Create Run**, repeat **07 Poll** until `completed`/`failed`/`cancelled`, then **08 Get Run Results**
+4. `suiteId` / `runId` are saved into the environment by post-response scripts
+
+Do not “Run Folder” on **runs** if it includes **Cancel Run** — that will abort a fresh run.
 
 ```bash
 make unit          # domain + validators (no infra)

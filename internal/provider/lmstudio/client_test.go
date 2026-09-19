@@ -28,7 +28,7 @@ func TestCompleteHappyPath(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	client := lmstudio.New(srv.URL)
+	client := lmstudio.New(srv.URL, "")
 	resp, err := client.Complete(context.Background(), provider.CompletionRequest{
 		Model:  "test",
 		Prompt: "capital?",
@@ -44,13 +44,33 @@ func TestCompleteHappyPath(t *testing.T) {
 	}
 }
 
+func TestCompleteSendsAPIKey(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Header.Get("Authorization"); got != "Bearer lmstudio-test-key" {
+			t.Fatalf("Authorization=%q", got)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"choices": []map[string]any{
+				{"message": map[string]string{"content": "ok"}},
+			},
+		})
+	}))
+	defer srv.Close()
+
+	client := lmstudio.New(srv.URL, "lmstudio-test-key")
+	_, err := client.Complete(context.Background(), provider.CompletionRequest{Model: "m", Prompt: "p"})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestCompleteTimeout(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(200 * time.Millisecond)
 	}))
 	defer srv.Close()
 
-	client := lmstudio.New(srv.URL)
+	client := lmstudio.New(srv.URL, "")
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
 	defer cancel()
 

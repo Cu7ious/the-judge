@@ -1,0 +1,9 @@
+info:
+  name: Smoke Parallel LM Studio
+  type: folder
+  seq: 4
+
+docs: |-
+  End-to-end happy path matching the curl example.
+  Select Local, then Run Folder (top to bottom).
+  Does NOT include Cancel — that would abort the run.

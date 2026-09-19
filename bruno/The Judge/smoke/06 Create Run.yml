@@ -1,0 +1,51 @@
+info:
+  name: 06 Create Run
+  type: http
+  seq: 6
+  tags:
+    - smoke
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/runs"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "suite_id": "{{suiteId}}",
+        "models": [
+          {
+            "provider": "lmstudio",
+            "model": "{{lmstudioModel}}"
+          }
+        ]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 201 && res.body && res.body.id) {
+          bru.setEnvVar("runId", res.body.id);
+          console.log("runId =", res.body.id);
+        }
+    - type: tests
+      code: |-
+        test("creates run", function () {
+          expect(res.status).to.equal(201);
+          expect(res.body.total).to.equal(3);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Enqueues 3 case_runs (france/germany/italy × one LM Studio model).
+  Worker runs them concurrently. Requires API + worker + LM Studio.
