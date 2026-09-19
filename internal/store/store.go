@@ -265,11 +265,61 @@ func (s *Store) GetRunSummary(ctx context.Context, id uuid.UUID) (*domain.RunSum
 	}
 
 	summary := &domain.RunSummary{EvaluationRun: *run}
+	if err := s.fillRunSummaryCounts(ctx, summary); err != nil {
+		return nil, err
+	}
+	return summary, nil
+}
+
+// ListRuns returns recent run summaries ordered by created_at DESC.
+func (s *Store) ListRuns(ctx context.Context, limit int) ([]domain.RunSummary, error) {
+	if limit <= 0 || limit > 200 {
+		limit = 50
+	}
+	rows, err := s.pool.Query(ctx, `
+		SELECT id, suite_id, models, status, created_at, started_at, finished_at, error
+		FROM evaluation_runs
+		ORDER BY created_at DESC
+		LIMIT $1
+	`, limit)
+	if err != nil {
+		return nil, fmt.Errorf("list runs: %w", err)
+	}
+	defer rows.Close()
+
+	var out []domain.RunSummary
+	for rows.Next() {
+		var run domain.EvaluationRun
+		var modelsJSON []byte
+		if err := rows.Scan(
+			&run.ID, &run.SuiteID, &modelsJSON, &run.Status, &run.CreatedAt,
+			&run.StartedAt, &run.FinishedAt, &run.Error,
+		); err != nil {
+			return nil, err
+		}
+		if err := json.Unmarshal(modelsJSON, &run.Models); err != nil {
+			return nil, err
+		}
+		out = append(out, domain.RunSummary{EvaluationRun: run})
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	for i := range out {
+		if err := s.fillRunSummaryCounts(ctx, &out[i]); err != nil {
+			return nil, err
+		}
+	}
+	return out, nil
+}
+
+func (s *Store) fillRunSummaryCounts(ctx context.Context, summary *domain.RunSummary) error {
 	rows, err := s.pool.Query(ctx, `
 		SELECT status, COUNT(*) FROM case_runs WHERE run_id = $1 GROUP BY status
-	`, id)
+	`, summary.ID)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer rows.Close()
 
@@ -277,7 +327,7 @@ func (s *Store) GetRunSummary(ctx context.Context, id uuid.UUID) (*domain.RunSum
 		var status domain.CaseRunStatus
 		var count int
 		if err := rows.Scan(&status, &count); err != nil {
-			return nil, err
+			return err
 		}
 		summary.Total += count
 		switch status {
@@ -295,7 +345,19 @@ func (s *Store) GetRunSummary(ctx context.Context, id uuid.UUID) (*domain.RunSum
 			summary.Cancelled = count
 		}
 	}
-	return summary, rows.Err()
+	if err := rows.Err(); err != nil {
+		return err
+	}
+
+	var maxLatency *int
+	err = s.pool.QueryRow(ctx, `
+		SELECT MAX(latency_ms) FROM case_runs WHERE run_id = $1 AND latency_ms IS NOT NULL
+	`, summary.ID).Scan(&maxLatency)
+	if err != nil {
+		return err
+	}
+	summary.MaxLatencyMs = maxLatency
+	return nil
 }
 
 func (s *Store) ListCaseRuns(ctx context.Context, runID uuid.UUID) ([]domain.CaseRun, error) {

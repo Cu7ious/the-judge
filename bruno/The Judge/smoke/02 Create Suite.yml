@@ -1,0 +1,42 @@
+info:
+  name: 02 Create Suite
+  type: http
+  seq: 2
+  tags:
+    - smoke
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/suites"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "name": "capitals",
+        "description": "parallel lmstudio smoke"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 201 && res.body && res.body.id) {
+          bru.setEnvVar("suiteId", res.body.id);
+          console.log("suiteId =", res.body.id);
+        }
+    - type: tests
+      code: |-
+        test("creates suite", function () {
+          expect(res.status).to.equal(201);
+          expect(res.body.id).to.be.a("string");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

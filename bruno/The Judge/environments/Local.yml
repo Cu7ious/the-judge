@@ -2,17 +2,13 @@ name: Local
 variables:
   - name: baseUrl
     value: http://localhost:8080
-    enabled: true
     description: API base URL (docker compose or local go run)
   - name: suiteId
-    value: ""
-    enabled: true
+    value: 35e38132-685a-4aba-97d0-6b990ffc2de0
     description: Set automatically by Create Suite (or paste a suite UUID)
   - name: runId
-    value: ""
-    enabled: true
+    value: 3a76ef63-3eb2-46ac-8d74-bbd98bb7c24e
     description: Set automatically by Create Run (or paste a run UUID)
   - name: lmstudioModel
-    value: local-model
-    enabled: true
+    value: google/gemma-4-e4b
     description: Model name served by LM Studio

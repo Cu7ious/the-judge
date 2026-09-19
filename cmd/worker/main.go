@@ -36,7 +36,7 @@ func main() {
 
 	st := store.New(pool)
 	registry := provider.Registry{
-		"lmstudio": lmstudio.New(cfg.LMStudioBaseURL),
+		"lmstudio": lmstudio.New(cfg.LMStudioBaseURL, cfg.LMStudioAPIKey),
 		"gemini":   gemini.New(cfg.GeminiAPIKey, cfg.GeminiBaseURL),
 	}
 
