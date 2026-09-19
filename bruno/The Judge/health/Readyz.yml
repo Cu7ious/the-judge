@@ -1,0 +1,20 @@
+info:
+  name: Readyz
+  type: http
+  seq: 2
+  tags:
+    - health
+
+http:
+  method: GET
+  url: "{{baseUrl}}/readyz"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Readiness probe. Pings Postgres and Redis.

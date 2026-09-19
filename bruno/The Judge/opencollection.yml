@@ -1,0 +1,7 @@
+opencollection: "1.0.0"
+
+info:
+  name: The Judge
+  description: |-
+    REST collection for the LLM Evaluation Runner API.
+    Select the Local environment, then run Health → Suites → Runs in order.

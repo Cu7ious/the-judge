@@ -1,0 +1,20 @@
+info:
+  name: Cancel Run
+  type: http
+  seq: 4
+  tags:
+    - runs
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/runs/{{runId}}/cancel"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Cancels a pending/running evaluation run and its non-terminal case runs.

@@ -1,0 +1,55 @@
+info:
+  name: Create Run
+  type: http
+  seq: 1
+  tags:
+    - runs
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/runs"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "suite_id": "{{suiteId}}",
+        "models": [
+          {
+            "provider": "lmstudio",
+            "model": "{{lmstudioModel}}"
+          }
+        ]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 201 && res.body && res.body.id) {
+          bru.setEnvVar("runId", res.body.id);
+          console.log("runId =", res.body.id);
+        }
+    - type: tests
+      code: |-
+        test("creates run", function () {
+          expect(res.status).to.equal(201);
+          expect(res.body.id).to.be.a("string");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Submits an evaluation run for `suiteId` against LM Studio.
+  Requires a worker + LM Studio (or mock) to make progress.
+  Saves `runId` into the Local environment.
+
+  To also try Gemini later, add another models entry:
+  `{"provider":"gemini","model":"gemini-2.0-flash"}`

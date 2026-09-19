@@ -1,0 +1,20 @@
+info:
+  name: List Suites
+  type: http
+  seq: 2
+  tags:
+    - suites
+
+http:
+  method: GET
+  url: "{{baseUrl}}/v1/suites"
+  headers:
+    - name: Content-Type
+      value: application/json
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,20 @@
+info:
+  name: Get Run
+  type: http
+  seq: 2
+  tags:
+    - runs
+
+http:
+  method: GET
+  url: "{{baseUrl}}/v1/runs/{{runId}}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Run status plus per-status case counts. Poll until completed/failed/cancelled.

@@ -1,0 +1,20 @@
+info:
+  name: Get Suite
+  type: http
+  seq: 3
+  tags:
+    - suites
+
+http:
+  method: GET
+  url: "{{baseUrl}}/v1/suites/{{suiteId}}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Returns a suite and its test cases. Requires `suiteId` (set by Create Suite).

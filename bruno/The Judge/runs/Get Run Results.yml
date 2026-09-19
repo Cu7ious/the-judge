@@ -1,0 +1,20 @@
+info:
+  name: Get Run Results
+  type: http
+  seq: 3
+  tags:
+    - runs
+
+http:
+  method: GET
+  url: "{{baseUrl}}/v1/runs/{{runId}}/results"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Side-by-side compare view: case runs + validation results for `runId`.

@@ -1,0 +1,18 @@
+name: Local
+variables:
+  - name: baseUrl
+    value: http://localhost:8080
+    enabled: true
+    description: API base URL (docker compose or local go run)
+  - name: suiteId
+    value: ""
+    enabled: true
+    description: Set automatically by Create Suite (or paste a suite UUID)
+  - name: runId
+    value: ""
+    enabled: true
+    description: Set automatically by Create Run (or paste a run UUID)
+  - name: lmstudioModel
+    value: local-model
+    enabled: true
+    description: Model name served by LM Studio

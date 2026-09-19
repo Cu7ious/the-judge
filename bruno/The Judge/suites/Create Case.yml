@@ -1,0 +1,44 @@
+info:
+  name: Create Case
+  type: http
+  seq: 4
+  tags:
+    - suites
+
+http:
+  method: POST
+  url: "{{baseUrl}}/v1/suites/{{suiteId}}/cases"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "name": "france",
+        "prompt": "What is the capital of France? Reply with one word.",
+        "validators": [
+          {"type": "contains", "value": "Paris"}
+        ],
+        "timeout_ms": 20000,
+        "position": 0
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("creates test case", function () {
+          expect(res.status).to.equal(201);
+          expect(res.body.suite_id).to.equal(bru.getEnvVar("suiteId"));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Adds a test case to `suiteId`. Run Create Suite first.
